@@ -70,7 +70,7 @@ class SWF {
 					
 					backgroundColor = stream.readRGB ();
 				
-				case Tags.DefineShape, Tags.DefineShape2, Tags.DefineShape3, Tags.DefineShape4, Tags.DefineMorphShape, Tags.DefineMorphShape2, Tags.DefineSprite, Tags.DefineBits, Tags.DefineBitsJPEG2, Tags.DefineBitsJPEG3, Tags.DefineBitsJPEG4, Tags.DefineBitsLossless, Tags.DefineBitsLossless2, Tags.DefineFont, Tags.DefineFont2, Tags.DefineFont3, Tags.DefineText, Tags.DefineText2, Tags.DefineEditText, Tags.DefineButton, Tags.DefineButton2:
+				case Tags.DefineShape, Tags.DefineShape2, Tags.DefineShape3, Tags.DefineShape4, Tags.DefineMorphShape, Tags.DefineMorphShape2, Tags.DefineSprite, Tags.DefineBits, Tags.DefineBitsJPEG2, Tags.DefineBitsJPEG3, Tags.DefineBitsJPEG4, Tags.DefineBitsLossless, Tags.DefineBitsLossless2, Tags.DefineFont, Tags.DefineFont2, Tags.DefineFont3, Tags.DefineFont4, Tags.DefineText, Tags.DefineText2, Tags.DefineEditText, Tags.DefineButton, Tags.DefineButton2:
 					
 					var id = stream.readID ();
 					
