@@ -31,6 +31,8 @@ class SWF {
 	public var height (default, null):Int;
 	public var symbols:Hash <Int>;
 	public var width (default, null):Int;
+	public var frameLabels:Hash <Int>;
+	public var scenes:Hash <Int>;
 	
 	private var jpegTables:ByteArray;
 	private var symbolData:IntHash <Symbol>;
@@ -46,6 +48,8 @@ class SWF {
 		symbolData = new IntHash <Symbol> ();
 		streamPositions = new IntHash <Int> ();
 		symbols = new Hash <Int> ();
+		scenes = new Hash <Int> ();
+		frameLabels = new Hash <Int> ();
 		
 		var dimensions = stream.readRect ();
 		width = Std.int (dimensions.width);
@@ -59,14 +63,14 @@ class SWF {
 		var position = stream.position;
 		
 		while ((tag = stream.beginTag ()) != 0) {
-			
+			trace("parsing tag "+Tags.string(tag));
 			switch (tag) {
 				
 				case Tags.SetBackgroundColor:
 					
 					backgroundColor = stream.readRGB ();
 				
-				case Tags.DefineShape, Tags.DefineShape2, Tags.DefineShape3, Tags.DefineShape4, Tags.DefineMorphShape, Tags.DefineMorphShape2, Tags.DefineSprite, Tags.DefineBits, Tags.DefineBitsJPEG2, Tags.DefineBitsJPEG3, Tags.DefineBitsLossless, Tags.DefineBitsLossless2, Tags.DefineFont, Tags.DefineFont2, Tags.DefineFont3, Tags.DefineText, Tags.DefineText2, Tags.DefineEditText, Tags.DefineButton, Tags.DefineButton2:
+				case Tags.DefineShape, Tags.DefineShape2, Tags.DefineShape3, Tags.DefineShape4, Tags.DefineMorphShape, Tags.DefineMorphShape2, Tags.DefineSprite, Tags.DefineBits, Tags.DefineBitsJPEG2, Tags.DefineBitsJPEG3, Tags.DefineBitsJPEG4, Tags.DefineBitsLossless, Tags.DefineBitsLossless2, Tags.DefineFont, Tags.DefineFont2, Tags.DefineFont3, Tags.DefineText, Tags.DefineText2, Tags.DefineEditText, Tags.DefineButton, Tags.DefineButton2:
 					
 					var id = stream.readID ();
 					
@@ -84,9 +88,23 @@ class SWF {
 					jpegTables = stream.readBytes (size);
 				
 				case Tags.DefineSceneAndFrameLabelData:
-					
-					// currently ignored
-				
+					{
+						var i:Int = 0;
+						var sceneCount:Int = stream.readEncodedU32();
+						while (i<sceneCount) {
+							var sceneNum:Int = stream.readEncodedU32();
+							var sceneName:String = stream.readString();
+							scenes.set(sceneName, sceneNum);
+							i++;
+						}
+						i = 0;
+						var frameCount:Int = stream.readEncodedU32();
+						while (i<frameCount) {
+							var frameNum:Int = stream.readEncodedU32();
+							var frameName:String = stream.readString();
+							frameLabels.set(frameName, frameNum);
+						}
+					}
 				default:
 					
 					#if neko
@@ -106,7 +124,7 @@ class SWF {
 					}
 					
 					#end
-				
+					
 			}
 			
 			stream.endTag();

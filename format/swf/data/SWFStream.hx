@@ -81,15 +81,15 @@ class SWFStream {
 		var tag = data >> 6;
 		var length = data & 0x3f;
 		
-		if (tag >= Tags.LAST)
-			return 0;
 		
 		if (length == 0x3F)
 			length = stream.readUnsignedInt ();
 		
 		tagSize = length;
 		tagRead = 0;
-		
+		//trace("reading tag "+tag+" with size "+length);
+		if (tag >= Tags.LAST)
+			return 0;
 		return tag;
 		
 	}
@@ -103,7 +103,6 @@ class SWFStream {
 	
 	
 	public function endTag ():Void {
-		
 		var read = tagRead;
 		var size = tagSize;
 		
@@ -113,13 +112,16 @@ class SWFStream {
 			
 		}
 		
-		while (read < size) {
+		/*while (read < size) {
 			
 			stream.readUnsignedByte ();
 			read ++;
 			
-		}
-		
+		}*/
+		var left = getBytesLeft();
+		if (left > 0) readBytes(left);
+		alignBits();
+		//trace("tag end with "+tagRead+" bytes read");
 	}
 	
 	
@@ -140,7 +142,7 @@ class SWFStream {
 	public function popTag ():Void {
 		
 		// should probably count properly ...
-		tagRead = pushTagSize;
+		tagRead = pushTagRead;
 		tagSize = pushTagSize;
 		
 	}
@@ -607,7 +609,23 @@ class SWFStream {
 	}
 	
 	
-	
+	public function readEncodedU32():Int {
+		alignBits();
+		var result:Int = readByte();
+		if ((result & 0x80) != 0) {
+			result = (result & 0x7f) | (readByte()<<7);
+			if ((result & 0x4000) != 0) {
+				result = (result & 0x3fff) | (readByte()<<14);
+				if ((result & 0x200000) != 0) {
+					result = (result & 0x1fffff) | (readByte()<<21);
+					if ((result & 0x10000000) !=0) {
+						result = (result & 0xfffffff) | (readByte()<<28);
+					}
+				}
+			}
+		}
+		return result;
+	}
 	
 	// Get & Set Methods
 	

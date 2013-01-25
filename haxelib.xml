@@ -1,4 +1,4 @@
-<project name="swf" url="http://github.com/haxenme/swf" license="MIT">
+<project name="swf" url="http://github.com/tiagosr/hxswf" license="MIT">
     <user name="elyon"/>
     <user name="gamehaxe"/>
     <tag v="cpp"/>

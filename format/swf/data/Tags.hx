@@ -119,8 +119,10 @@ class Tags {
 	public static var DefineFontName:Int = 88;
 	public static var StartSound2:Int = 89;
 	
+	public static var DefineBitsJPEG4:Int = 90;
+	public static var DefineFont4:Int = 91;
 	
-	public static var LAST:Int = 90;
+	public static var LAST:Int = 92;
 	
 	
 	private static var tags:Array <String> = [
@@ -238,6 +240,9 @@ class Tags {
 		"DefineBinaryData", //  87
 		"DefineFontName", //  88
 		"StartSound2", // 89
+
+		"DefineBitsJPEG4",
+		"DefineFont4",
 		"LAST", // 90
 	];
 	
