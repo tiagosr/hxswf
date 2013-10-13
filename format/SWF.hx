@@ -261,6 +261,7 @@ class SWF {
 					case Tags.DefineFont: readFont (1);
 					case Tags.DefineFont2: readFont (2);
 					case Tags.DefineFont3: readFont (3);
+					case Tags.DefineFont4: readFont (4);
 					
 					case Tags.DefineText: readText (1);
 					case Tags.DefineText2: readText (2);
