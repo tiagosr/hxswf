@@ -4,6 +4,7 @@ package format.swf.symbol;
 import flash.display.Graphics;
 import flash.geom.Matrix;
 import format.swf.data.SWFStream;
+import flash.utils.ByteArray;
 
 
 class Font {
@@ -16,6 +17,7 @@ class Font {
 	private var glyphsByCode:Array <Glyph>;
 	private var glyphsByIndex:Array <Glyph>;
 	private var leading:Float;
+	private var fontData:ByteArray;
 	
 	
 	public function new (stream:SWFStream, version:Int) {
@@ -33,9 +35,17 @@ class Font {
 		var italic = false;
 		var bold = false;
 		var languageCode = 0;
+		var hasFontData = true;
 		fontName = "font";
 		
-		if (version > 1) {
+		if (version == 4) {
+			var flags = stream.readByte();
+			hasFontData = ((flags & 0x4) != 0);
+			italic = ((flags & 0x2) != 0);
+			bold = ((flags & 1) != 0);
+			fontName = stream.readString();
+
+		} else if (version > 1) {
 			
 			hasLayout = stream.readBool ();
 			hasJIS = stream.readBool ();
@@ -56,8 +66,11 @@ class Font {
 		var offsets = new Array <Int> ();
 		var codeOffset = 0;
 		var v3scale = version > 2 ?  1.0 : 0.05;
-		
-		if (version > 1) {
+		if (version == 4) {
+			if (hasFontData) {
+				fontData = stream.readBytes(stream.getBytesLeft());
+			}
+		} else if (version > 1) {
 			
 			numGlyphs = stream.readUInt16 ();
 			fontBytes = stream.getBytesLeft ();
