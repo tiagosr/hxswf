@@ -13,13 +13,19 @@ import format.display.FrameLabel;
 import format.swf.data.Frame;
 import format.SWF;
 
+#if haxe3
+import haxe.ds.IntMap;
+#else
+typedef IntMap<T> = IntHash<T>;
+#end
+
 
 class MovieClip extends format.display.MovieClip {
 	
 	
 	private var activeObjects:Array <ActiveObject>;
 	private var frames:Array <Frame>;
-	private var objectPool:IntHash <List <DisplayObject>>;
+	private var objectPool:IntMap <List <DisplayObject>>;
 	private var playing:Bool;
 	private var swf:SWF;
 	
@@ -28,43 +34,51 @@ class MovieClip extends format.display.MovieClip {
 		
 		super ();
 		
-		objectPool = new IntHash <List <DisplayObject>> ();
+		objectPool = new IntMap <List <DisplayObject>> ();
 		
 		enabled = true;
 		playing = false;
 		
+		#if (!openfl || !flash)
 		currentFrameLabel = null;
 		currentLabel = null;
 		currentLabels = new Array <FrameLabel> ();
+		#end
 		
 		if (data != null) {
 			
-			totalFrames = data.frameCount;
-			currentFrame = totalFrames;
-			framesLoaded = totalFrames;
+			#if openfl __totalFrames #else totalFrames #end = data.frameCount;
+			#if openfl __currentFrame #else currentFrame #end = #if openfl __totalFrames #else totalFrames #end;
+			#if (!openfl || !flash)
+			framesLoaded = #if openfl __totalFrames #else totalFrames #end;
+			#end
 			
 			swf = data.swf;
 			frames = data.frames;
 			
+			#if (!openfl || !flash)
 			for (label in data.frameLabels.keys ()) {
 				
 				var frameLabel = new FrameLabel (data.frameLabels.get (label), label);
 				currentLabels.push (frameLabel);
 				
 			}
+			#end
 			
 			activeObjects = new Array <ActiveObject> ();
 			
 			//gotoAndPlay (1);
-			currentFrame = 1;
+			#if openfl __currentFrame #else currentFrame #end = 1;
 			updateObjects ();
 			play ();
 			
 		} else {
 			
-			currentFrame = 1;
-			totalFrames = 1;
+			#if openfl __currentFrame #else currentFrame #end = 1;
+			#if openfl __totalFrames #else totalFrames #end = 1;
+			#if (!openfl || !flash)
 			framesLoaded = 1;
+			#end
 			
 		}
 		
@@ -75,10 +89,10 @@ class MovieClip extends format.display.MovieClip {
 		
 		// Should we support flatten + playing multiple frames?
 		
-		//if (#if flash totalFrames #else mTotalFrames #end == 1) {
+		//if (#if flash #if openfl __totalFrames #else totalFrames #end #else m#if openfl __totalFrames #else totalFrames #end #end == 1) {
 			
 			var bounds = getBounds (this);
-			var bitmapData = new BitmapData (Std.int (bounds.right), Std.int (bounds.bottom), true, #if neko { a: 0, rgb: 0x000000 } #else 0x00000000 #end);
+			var bitmapData = new BitmapData (Std.int (bounds.right), Std.int (bounds.bottom), true, #if (neko && !haxe3) { a: 0, rgb: 0x000000 } #else 0x00000000 #end);
 			bitmapData.draw (this);
 			
 			for (activeObject in activeObjects) {
@@ -104,9 +118,9 @@ class MovieClip extends format.display.MovieClip {
 	}
 	
 	
-	public override function gotoAndPlay (frame:Dynamic, scene:String = null):Void {
+	public override function gotoAndPlay (frame:#if openfl flash.utils.Object #else Dynamic #end, scene:String = null):Void {
 		
-		if (frame != currentFrame) {
+		if (frame != #if openfl __currentFrame #else currentFrame #end) {
 			
 			if (Std.is (frame, String)) {
 				
@@ -114,7 +128,7 @@ class MovieClip extends format.display.MovieClip {
 					
 					if (frameLabel.name == frame) {
 						
-						currentFrame = frameLabel.frame;
+						#if openfl __currentFrame #else currentFrame #end = frameLabel.frame;
 						break;
 						
 					}
@@ -123,7 +137,7 @@ class MovieClip extends format.display.MovieClip {
 				
 			} else {
 				
-				currentFrame = frame;
+				#if openfl __currentFrame #else currentFrame #end = frame;
 				
 			}
 			
@@ -136,9 +150,9 @@ class MovieClip extends format.display.MovieClip {
 	}
 	
 	
-	public override function gotoAndStop (frame:Dynamic, scene:String = null):Void {
+	public override function gotoAndStop (frame:#if openfl flash.utils.Object #else Dynamic #end, scene:String = null):Void {
 		
-		if (frame != currentFrame) {
+		if (frame != #if openfl __currentFrame #else currentFrame #end) {
 			
 			if (Std.is (frame, String)) {
 				
@@ -146,7 +160,7 @@ class MovieClip extends format.display.MovieClip {
 					
 					if (frameLabel.name == frame) {
 						
-						currentFrame = frameLabel.frame;
+						#if openfl __currentFrame #else currentFrame #end = frameLabel.frame;
 						break;
 						
 					}
@@ -155,7 +169,7 @@ class MovieClip extends format.display.MovieClip {
 				
 			} else {
 				
-				currentFrame = frame;
+				#if openfl __currentFrame #else currentFrame #end = frame;
 				
 			}
 			
@@ -170,11 +184,11 @@ class MovieClip extends format.display.MovieClip {
 	
 	public override function nextFrame ():Void {
 		
-		var next = currentFrame + 1;
+		var next = #if openfl __currentFrame #else currentFrame #end + 1;
 		
-		if (next > totalFrames) {
+		if (next > #if openfl __totalFrames #else totalFrames #end) {
 			
-			next = totalFrames;
+			next = #if openfl __totalFrames #else totalFrames #end;
 			
 		}
 		
@@ -192,7 +206,7 @@ class MovieClip extends format.display.MovieClip {
 	
 	public override function play ():Void {
 		
-		if (totalFrames > 1) {
+		if (#if openfl __totalFrames #else totalFrames #end > 1) {
 			
 			playing = true;
 			removeEventListener (Event.ENTER_FRAME, this_onEnterFrame);
@@ -209,7 +223,7 @@ class MovieClip extends format.display.MovieClip {
 	
 	public override function prevFrame ():Void {
 		
-		var previous = currentFrame - 1;
+		var previous = #if openfl __currentFrame #else currentFrame #end - 1;
 		
 		if (previous < 1) {
 			
@@ -241,7 +255,7 @@ class MovieClip extends format.display.MovieClip {
 		
 		if (frames != null) {
 			
-			var frame = frames[currentFrame];
+			var frame = frames[#if openfl __currentFrame #else currentFrame #end];
 			var depthChanged = false;
 			var waitingLoader = false;
 			
@@ -281,7 +295,7 @@ class MovieClip extends format.display.MovieClip {
 						// remove from our "todo" list
 						frameObjects.remove (activeObject.depth);
 						
-						activeObject.index = depthSlot.findClosestFrame (activeObject.index, currentFrame);
+						activeObject.index = depthSlot.findClosestFrame (activeObject.index, #if openfl __currentFrame #else currentFrame #end);
 						var attributes = depthSlot.attributes[activeObject.index];
 						attributes.apply (activeObject.object);
 						
@@ -304,7 +318,7 @@ class MovieClip extends format.display.MovieClip {
 						
 						switch (slot.symbol) {
 							
-							case spriteSymbol (data):
+							case spriteSymbol (_):
 								
 								var clip:MovieClip = cast displayObject;
 								clip.gotoAndPlay (1);
@@ -356,11 +370,11 @@ class MovieClip extends format.display.MovieClip {
 								text.apply (t);
 								displayObject = t;
 							
-							case bitmapSymbol (shape):
+							case bitmapSymbol (_):
 								
 								throw("Adding bitmap?");
 							
-							case fontSymbol (font):
+							case fontSymbol (_):
 								
 								throw("Adding font?");
 							
@@ -423,7 +437,7 @@ class MovieClip extends format.display.MovieClip {
 						
 					}
 					
-					var idx = slot.findClosestFrame (0, currentFrame);
+					var idx = slot.findClosestFrame (0, #if openfl __currentFrame #else currentFrame #end);
 					slot.attributes[idx].apply (displayObject);
 					
 					var act = { object: displayObject, depth: depth, index: idx, symbolID: slot.symbolID, waitingLoader: waitingLoader };
@@ -434,6 +448,8 @@ class MovieClip extends format.display.MovieClip {
 				}
 				
 				activeObjects = newActiveObjects;
+				
+				#if (!openfl || !flash)
 				
 				currentFrameLabel = null;
 				
@@ -458,6 +474,8 @@ class MovieClip extends format.display.MovieClip {
 					
 				}
 				
+				#end
+				
 			}
 			
 		}
@@ -476,11 +494,11 @@ class MovieClip extends format.display.MovieClip {
 		
 		if (playing) {
 			
-			currentFrame++;
+			#if openfl __currentFrame #else currentFrame #end ++;
 			
-			if (currentFrame > totalFrames) {
+			if (#if openfl __currentFrame #else currentFrame #end > #if openfl __totalFrames #else totalFrames #end) {
 				
-				currentFrame = 1;
+				#if openfl __currentFrame #else currentFrame #end = 1;
 				
 			}
 			
